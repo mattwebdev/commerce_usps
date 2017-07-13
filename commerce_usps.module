@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Contains commerce_usps.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function commerce_usps_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the commerce_usps module.
+    case 'help.page.commerce_usps':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('USPS shipping module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
