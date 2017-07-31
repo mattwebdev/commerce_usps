@@ -10,11 +10,9 @@ use Drupal\commerce_shipping\ShippingRate;
 use Drupal\commerce_shipping\ShippingService;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\fyp\XMLParser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use USPS\RatePackage;
 
-require(drupal_get_path('module', 'fyp') . '/src/XMLParser.php');
 require(drupal_get_path('module', 'commerce_usps') . '/vendor/autoload.php');
 
 /**
