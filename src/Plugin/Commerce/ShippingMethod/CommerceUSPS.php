@@ -1,25 +1,48 @@
 <?php
 
-namespace Drupal\commerce_usps\Plugin\CommerceShippingMethod;
+namespace Drupal\commerce_usps\Plugin\Commerce\ShippingMethod;
 
+use Drupal\commerce_price\Price;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\PackageTypeManagerInterface;
 use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodBase;
-use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodInterface;
+use Drupal\commerce_shipping\ShippingRate;
 use Drupal\commerce_shipping\ShippingService;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\fyp\XMLParser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use USPS\RatePackage;
 
+require(drupal_get_path('module', 'fyp') . '/src/XMLParser.php');
+require(drupal_get_path('module', 'commerce_usps') . '/vendor/autoload.php');
 
 /**
  * @CommerceShippingMethod(
  *  id = "commerce_shipping_method",
- *  label = @Translation("The plugin ID."),
- *  services = "array",
+ *  label = @Translation("USPS"),
+ *  services = {
+ *   "USPS FIRST CLASS",
+ *   "USPS FIRST CLASS COMMERCIAL",
+ *   "USPS FIRST CLASS HFP COMMERCIAL",
+ *   "USPS PRIORITY",
+ *   "USPS PRIORITY COMMERCIAL",
+ *   "USPS PRIORITY HFP COMMERCIAL",
+ *   "USPS EXPRESS",
+ *   "USPS EXPRESS COMMERCIAL",
+ *   "USPS EXPRESS SH",
+ *   "USPS EXPRESS SH COMMERCIAL",
+ *   "USPS EXPRESS HFP",
+ *   "USPS EXPRESS HFP COMMERCIAL",
+ *   "USPS PARCEL",
+ *   "USPS MEDIA",
+ *   "USPS LIBRARY",
+ *   "USPS ALL",
+ *   "USPS ONLINE"
+ *   },
  * )
  */
-class USPSSHippingMethod extends ShippingMethodBase {
+class CommerceUSPS extends ShippingMethodBase {
 
 
   /**
@@ -49,7 +72,7 @@ class USPSSHippingMethod extends ShippingMethodBase {
    *   The package type manager.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $package_type_manager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $package_type_manager);
 
     $this->packageTypeManager = $package_type_manager;
     foreach ($this->pluginDefinition['services'] as $id => $label) {
@@ -70,7 +93,9 @@ class USPSSHippingMethod extends ShippingMethodBase {
    */
   public function defaultConfiguration() {
     return [
-      'default_package_type' => 'custom_box',
+      'username' => '',
+      'password' => '',
+      'default_package_type' => 'basic_box',
       'services' => [],
     ];
   }
@@ -141,6 +166,22 @@ class USPSSHippingMethod extends ShippingMethodBase {
       $this->configuration['services'] = array_combine($service_ids, $service_ids);
     }
 
+    $form['username'] = [
+      '#type' => 'textfield',
+      '#title' => t('Username'),
+      '#description' => t(''),
+      '#default_value' => $this->configuration['username'],
+      '#required' => TRUE,
+    ];
+
+    $form['password'] = [
+      '#type' => 'textfield',
+      '#title' => t('Password'),
+      '#description' => t(''),
+      '#default_value' => $this->configuration['password'],
+      '#required' => TRUE,
+    ];
+
     $form['default_package_type'] = [
       '#type' => 'select',
       '#title' => $this->t('Default package type'),
@@ -196,8 +237,85 @@ class USPSSHippingMethod extends ShippingMethodBase {
    * {@inheritdoc}
    */
   public function calculateRates(ShipmentInterface $shipment) {
+    $uspsPackage = $this->BuildUSPSPackage($shipment);
+    $rates = [];
+    $ups = $this->getUSPSRate($shipment, $uspsPackage);
+    $upsRate = $ups->getRate();
+
+    if ($ups->isSuccess()) {
+      $responseArray = $this->parseXML($upsRate);
+      $cost = $responseArray['RateV4Response'][0]['Package'][0]['Postage'][0]["Rate"][0];
+      $currency = "USD";
+      $price = new Price((string) $cost, $currency);
+      $ServiceCode = $this->getUSPSServices($uspsPackage);
+
+      $shippingService = new ShippingService(
+        $ServiceCode,
+        $ServiceCode
+      );
+
+      $rates[] = new ShippingRate(
+        $ServiceCode,
+        $shippingService,
+        $price
+      );
+    }
+    else {
+      dpm('Error: ' . $ups->getErrorMessage());
+    }
+
+    return $rates;
+
+  }
+
+  protected function BuildUSPSPackage(ShipmentInterface $shipment) {
+
+    $store = $shipment->getOrder()->getStore();
+
+    $package = new RatePackage();
+
+    $service = $this->getUSPSServices($package);
+    $package->setService($service);
+    $package->setFirstClassMailType(RatePackage::MAIL_TYPE_PACKAGE);
+    $package->setZipOrigination($store->getAddress()->getPostalCode());
+    $package->setZipDestination($this->getShiptoAddress($shipment)
+      ->getPostalCode());
+    $package->setPounds(10);
+    $package->setOunces(0);
+    $package->setContainer('');
+    $package->setSize(RatePackage::SIZE_REGULAR);
+    $package->setField('Machinable', TRUE);
+
+    return $package;
+  }
+
+  protected function getUSPSServices(RatePackage $package) {
+
+    return $package::SERVICE_PARCEL;
+
+  }
+
+  protected function getShiptoAddress(ShipmentInterface $shipment) {
+    $ShippingProfileAddress = $shipment->getShippingProfile()->get('address');
+    return $ShippingProfileAddress->first();
+
+  }
+
+  protected function getUSPSRate(ShipmentInterface $shipment, RatePackage $uspsPackage) {
     if ($shipment->getShippingProfile()->address->isEmpty()) {
       return [];
     }
+    else {
+      $rate = new \USPS\Rate($this->configuration['username']);
+      $rate->addPackage($uspsPackage);
+
+      return $rate;
+    }
+  }
+
+
+  protected function parseXML($string) {
+    $parser = new \Drupal\commerce_usps\Controller\XMLParser();
+    return $parser->parse($string);
   }
 }
