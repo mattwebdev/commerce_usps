@@ -1,5 +1,5 @@
 {
-  "name": "drupal/commerce_usps",
+  "name": "commerce_usps/commerce_usps",
   "type": "drupal-module",
   "description": "USPS shipping module",
   "keywords": [
