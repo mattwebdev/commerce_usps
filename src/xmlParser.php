@@ -3,11 +3,10 @@
 namespace Drupal\commerce_usps;
 
 /**
- * Class XMLParser.
+ * Class xmlParser.
  *
- * @package Drupal\fyp
  */
-class FYPXMLParser {
+class xmlParser {
 
   /**
    * @param $string

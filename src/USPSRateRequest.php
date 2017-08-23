@@ -56,7 +56,7 @@ class USPSRateRequest extends USPSRequest {
    * @return array
    */
   public function getRates() {
-    $xml_parser = new FYPXMLParser();
+    $xml_parser = new xmlParser();
 
     $rates = [];
 
