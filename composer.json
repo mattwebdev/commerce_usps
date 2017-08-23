@@ -1,10 +1,8 @@
 {
   "name": "drupal/commerce_usps",
   "type": "drupal-module",
-  "description": "USPS shipping module",
-  "keywords": [
-    "Drupal"
-  ],
+  "description": "USPS Shipping Module for Drupal 8",
+  "keywords": ["Drupal"],
   "license": "GPL-2.0+",
   "homepage": "https://www.drupal.org/project/commerce_usps",
   "minimum-stability": "dev",
@@ -13,6 +11,6 @@
     "source": "http://cgit.drupalcode.org/commerce_usps"
   },
   "require": {
-    "vinceg/usps-php-api": "dev-master"
+    "vinceg/usps-php-api": "~1.0"
   }
 }

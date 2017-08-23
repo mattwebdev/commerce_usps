@@ -9,6 +9,10 @@ use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Implements hook_help().
+ *
+ * @param $route_name
+ * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
+ * @return string
  */
 function commerce_usps_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
@@ -16,7 +20,7 @@ function commerce_usps_help($route_name, RouteMatchInterface $route_match) {
     case 'help.page.commerce_usps':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('USPS shipping module') . '</p>';
+      $output .= '<p>' . t('usps Shipping Module for Drupal 8') . '</p>';
       return $output;
 
     default:
