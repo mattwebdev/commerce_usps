@@ -1,0 +1,65 @@
+commerce_shipping.commerce_shipping_method.plugin.usps:
+  type: commerce_shipping_method_configuration
+  mapping:
+    api_information:
+      label: 'API information'
+      type: mapping
+      mapping:
+        user_id:
+          type: string
+          label: 'User ID'
+        password:
+          type: string
+          label: 'Password'
+        mode:
+          type: boolean
+          label: 'Choose whether to use the test or live mode'
+        rate_setting:
+          type: boolean
+          label: 'Choose whether to use negotiated or standard rates'
+    options:
+      type: mapping
+      label: 'usps Options'
+      mapping:
+        log:
+          type: mapping
+          label: 'Log the following messages for debugging'
+          mapping:
+            request:
+              type: field.value.boolean
+              mapping:
+                value:
+                  label: 'API request messages'
+            response:
+              type: field.value.boolean
+              mapping:
+                value:
+                  label: 'API response messages'
+    conditions:
+      type: mapping
+      label: 'shipping conditions'
+      mapping:
+        conditions:
+          type: mapping
+          label: 'excluded shipping conditions'
+          mapping:
+            domestic:
+              type: field.value.boolean
+              mapping:
+                value:
+                  label: 'Domestic Shipment to Lower 48 States'
+            domestic_plus:
+              type: field.value.boolean
+              mapping:
+                value:
+                  label: 'Domestic Shipment to Alaska'
+            international_ca:
+              type: field.value.boolean
+              mapping:
+                value:
+                  label: 'International Shipment to Canada'
+            international_eu:
+              type: field.value.boolean
+              mapping:
+                value:
+                  label: 'International Shipment to Europe'
