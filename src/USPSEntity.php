@@ -7,6 +7,7 @@ class uspsEntity {
    * uspsEntity constructor.
    */
   public function __construct() {
+
   }
 
 }

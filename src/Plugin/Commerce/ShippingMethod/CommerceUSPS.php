@@ -5,6 +5,7 @@ namespace Drupal\commerce_usps\Plugin\Commerce\ShippingMethod;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\PackageTypeManagerInterface;
 use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodBase;
+use Drupal\commerce_shipping\ShippingRate;
 use Drupal\commerce_usps\USPSRateRequest;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -16,6 +17,7 @@ use Drupal\Core\Form\FormStateInterface;
  * )
  */
 class CommerceUsps extends ShippingMethodBase {
+
   /**
    * Constructs a new ShippingMethodBase object.
    *
@@ -27,8 +29,8 @@ class CommerceUsps extends ShippingMethodBase {
    *   The plugin implementation definition.
    * @param \Drupal\commerce_shipping\PackageTypeManagerInterface $packageTypeManager
    *
-   * @internal param \Drupal\commerce_shipping\PackageTypeManagerInterface $package_type_manager
-   *   The package type manager.
+   * @internal param \Drupal\commerce_shipping\PackageTypeManagerInterface
+   *   $package_type_manager The package type manager.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $packageTypeManager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $packageTypeManager);
@@ -135,6 +137,23 @@ class CommerceUsps extends ShippingMethodBase {
   }
 
   /**
+   * Determine if we have the minimum information to connect to usps.
+   *
+   * @return bool
+   *   TRUE if there is enough information to connect, FALSE otherwise.
+   */
+  protected function isConfigured() {
+
+    $api_information = $this->configuration['api_information'];
+
+    return (
+      !empty($api_information['user_id'])
+      &&
+      !empty($api_information['password'])
+    );
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
@@ -164,38 +183,30 @@ class CommerceUsps extends ShippingMethodBase {
 
   /**
    * Calculates rates for the given shipment.
-   *
-   * @param \Drupal\commerce_shipping\Entity\ShipmentInterface $shipment
-   *   The shipment.
-   *
-   * @return \Drupal\commerce_shipping\ShippingRate[]
-   *   The rates.
+   * {@inheritdoc}
    */
-  public function calculateRates(ShipmentInterface $shipment){
+  public function calculateRates(ShipmentInterface $shipment) {
+    $rate = [];
 
     $rate_request = new USPSRateRequest($this->configuration, $shipment);
 
-    $rates = $rate_request->getRates();
+    if (!$shipment->getShippingProfile()->address->isEmpty()) {
+      $rate = $rate_request->getRates();
+    }
 
-    return $rates;
+    return $rate;
 
   }
 
   /**
-   * Determine if we have the minimum information to connect to usps.
-   *
-   * @return bool
-   *   TRUE if there is enough information to connect, FALSE otherwise.
+   * {@inheritdoc}
    */
-  protected function isConfigured() {
-
-    $api_information = $this->configuration['api_information'];
-
-    return (
-      !empty($api_information['user_id'])
-      &&
-      !empty($api_information['password'])
-    );
+  public function selectRate(ShipmentInterface $shipment, ShippingRate $rate) {
+    // Plugins can override this method to store additional information
+    // on the shipment when the rate is selected (for example, the rate ID).
+    $shipment->setShippingService($rate->getService()->getId());
+    $shipment->setAmount($rate->getAmount());
+    $shipment->set('field_expected_delivery_date', $rate->getDeliveryDate());
   }
 
 }

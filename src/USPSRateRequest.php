@@ -56,45 +56,12 @@ class USPSRateRequest extends USPSRequest {
    * @return array
    */
   public function getRates() {
-    $xml_parser = new xmlParser();
-
     $rates = [];
 
+    $address = $this->commerce_shipment->getShippingProfile()->get('address');
     $request = $this->buildRequestObject($this->getShipment());
-
-    $available = 0;
-
-    foreach ($this->configuration['conditions']['conditions'] as $key => $value) {
-      if ($key == 'domestic' && $value == 0 && $this->validateUSAZip(strval($this->getShipment()
-          ->getPackageInfo()['ZipDestination'])) == 1) {
-        $available = 1;
-      }
-      elseif ($key == 'domestic_plus' && $value == 0 && $this->validateUSAZip(strval($this->getShipment()
-          ->getPackageInfo()['ZipDestination'])) == 1) {
-        $available = 1;
-      }
-      elseif ($key == 'domestic_mil' && $value == 0 && $this->validateUSAZip(strval($this->getShipment()
-          ->getPackageInfo()['ZipDestination'])) == 1) {
-        $available = 1;
-      }
-      elseif ($key == 'international_ca' && $value == 0 && $this->validateUSAZip(strval($this->getShipment()
-          ->getPackageInfo()['ZipDestination'])) == 0) {
-        $available = 1;
-      }
-      elseif ($key == 'international_eu' && $value == 0 && $this->validateUSAZip(strval($this->getShipment()
-          ->getPackageInfo()['ZipDestination'])) == 0) {
-        $available = 1;
-      }
-      elseif ($key == 'international_as' && $value == 0 && $this->validateUSAZip(strval($this->getShipment()
-          ->getPackageInfo()['ZipDestination'])) == 0) {
-        $available = 1;
-      }
-    }
-
-
-    if ($available == 0) {
-      $rate = $request->getRate();
-    }
+    $rate = $request->getRate();
+    $xml_parser = new XMLParser();
 
     if (!empty($rate)) {
       $responseArray = $xml_parser->parse($rate);
@@ -159,15 +126,6 @@ class USPSRateRequest extends USPSRequest {
 
   }
 
-  /**
-   * @param $zip_code
-   *
-   * @return int
-   */
-  function validateUSAZip($zip_code) {
-    return preg_match("/^([0-9]{5})(-[0-9]{4})?$/i", $zip_code);
-  }
-
   public function checkDeliveryDate() {
     // Initiate and set the username provided from usps
     $delivery = new ServiceDeliveryCalculator($this->configuration['api_information']['user_id']);
@@ -190,6 +148,15 @@ class USPSRateRequest extends USPSRequest {
     }
 
     return $label;
+  }
+
+  /**
+   * @param $zip_code
+   *
+   * @return int
+   */
+  function validateUSAZip($zip_code) {
+    return preg_match("/^([0-9]{5})(-[0-9]{4})?$/i", $zip_code);
   }
 
   /**
