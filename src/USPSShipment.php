@@ -45,7 +45,7 @@ class USPSShipment extends USPSEntity {
     $to_address->setCity($address->locality);
     $to_address->setState($address->administrative_area);
     $to_address->setZip5($address->postal_code);
-    $api_shipment->setZipDestination(93405);
+    $api_shipment->setZipDestination($address->postal_code);
   }
 
   /**

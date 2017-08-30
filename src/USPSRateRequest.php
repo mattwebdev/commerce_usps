@@ -63,6 +63,7 @@ class USPSRateRequest extends USPSRequest {
     $rate = $request->getRate();
     $xml_parser = new XMLParser();
 
+
     if (!empty($rate)) {
       $responseArray = $xml_parser->parse($rate);
 
@@ -71,7 +72,7 @@ class USPSRateRequest extends USPSRequest {
 
       $cost = $responseArray['RateV4Response'][0]['Package'][0]['Postage'][0]["Rate"][0];
 
-      $currency = "USD";
+      $currency = $this->commerce_shipment->getAmount()->getCurrencyCode();
 
       $price = new Price((string) $cost, $currency);
 
@@ -127,10 +128,12 @@ class USPSRateRequest extends USPSRequest {
   }
 
   public function checkDeliveryDate() {
+    $to_address = $this->commerce_shipment->getShippingProfile()->get('address');
+    $from_address = $this->commerce_shipment->getOrder()->getStore()->getAddress();
     // Initiate and set the username provided from usps
     $delivery = new ServiceDeliveryCalculator($this->configuration['api_information']['user_id']);
     // Add the zip code we want to lookup the city and state
-    $delivery->addRoute(3, '91730', '90025');
+    $delivery->addRoute(3,$from_address->getPostalCode(),$to_address->postal_code);
     // Perform the call and print out the results
     $delivery->getServiceDeliveryCalculation();
     return $delivery->getArrayResponse();
