@@ -12,7 +12,7 @@ commerce_shipping.commerce_shipping_method.plugin.usps:
           type: string
           label: 'Password'
         mode:
-          type: boolean
+          type: string
           label: 'Choose whether to use the test or live mode'
     options:
       type: mapping

@@ -18,24 +18,6 @@ use Drupal\Core\Form\FormStateInterface;
 class CommerceUsps extends ShippingMethodBase {
 
   /**
-   * Constructs a new ShippingMethodBase object.
-   *
-   * @param array $configuration
-   *   A configuration array containing information about the plugin instance.
-   * @param string $plugin_id
-   *   The plugin_id for the plugin instance.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Drupal\commerce_shipping\PackageTypeManagerInterface $packageTypeManager
-   *
-   * @internal param \Drupal\commerce_shipping\PackageTypeManagerInterface
-   *   $package_type_manager The package type manager.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $packageTypeManager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $packageTypeManager);
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
@@ -44,7 +26,6 @@ class CommerceUsps extends ShippingMethodBase {
           'user_id' => '',
           'password' => '',
           'mode' => 'test',
-          'rate_setting' => 0,
         ],
         'options' => [
           'log' => [],
@@ -150,15 +131,6 @@ class CommerceUsps extends ShippingMethodBase {
       &&
       !empty($api_information['password'])
     );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-
-    parent::validateConfigurationForm($form, $form_state);
-
   }
 
   /**

@@ -3,9 +3,9 @@ usps_large_flat_rate_box:
   remote_id: 'Lg Flat Rate Box'
   label: 'USPS Large Flat Rate Box'
   dimensions:
-    length: 12.25
-    width: 12.25
-    height: 6
+    length: '12.25'
+    width: '12.25'
+    height: '6'
     unit: 'in'
   shipping_method: 'usps'
 
@@ -13,9 +13,9 @@ usps_medium_flat_rate_box_top_loading:
   remote_id: 'Md Flat Rate Box'
   label: 'USPS Medium Flat Rate Box Top Loading'
   dimensions:
-    length: 11.25
-    width: 8.75
-    height: 6
+    length: '11.25'
+    width: '8.75'
+    height: '6'
     unit: 'in'
   shipping_method: 'usps'
 
@@ -23,9 +23,9 @@ usps_medium_flat_rate_box:
   remote_id: 'Md Flat Rate Box'
   label: 'USPS Medium Flat Rate Box'
   dimensions:
-    length: 12
-    width: 3.25
-    height: 14
+    length: '12'
+    width: '3.25'
+    height: '14'
     unit: 'in'
   shipping_method: 'usps'
 
@@ -33,9 +33,9 @@ usps_small_flat_rate_box:
   remote_id: 'Sm Flat Rate Box'
   label: 'USPS Small Flat Rate Box'
   dimensions:
-    length: 8.69
-    width: 1.75
-    height: 5.5
+    length: '8.69'
+    width: '1.75'
+    height: '5.5'
     unit: 'in'
   shipping_method: 'usps'
 
