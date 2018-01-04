@@ -14,12 +14,9 @@ commerce_shipping.commerce_shipping_method.plugin.usps:
         mode:
           type: boolean
           label: 'Choose whether to use the test or live mode'
-        rate_setting:
-          type: boolean
-          label: 'Choose whether to use negotiated or standard rates'
     options:
       type: mapping
-      label: 'usps Options'
+      label: 'USPS Options'
       mapping:
         log:
           type: mapping
