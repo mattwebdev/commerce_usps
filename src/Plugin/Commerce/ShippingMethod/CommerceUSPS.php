@@ -5,7 +5,6 @@ namespace Drupal\commerce_usps\Plugin\Commerce\ShippingMethod;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\PackageTypeManagerInterface;
 use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodBase;
-use Drupal\commerce_shipping\ShippingRate;
 use Drupal\commerce_usps\USPSRateRequest;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -13,7 +12,7 @@ use Drupal\Core\Form\FormStateInterface;
 /**
  * @CommerceShippingMethod(
  *  id = "usps",
- *  label = @Translation("usps"),
+ *  label = @Translation("USPS"),
  * )
  */
 class CommerceUsps extends ShippingMethodBase {
@@ -177,6 +176,9 @@ class CommerceUsps extends ShippingMethodBase {
 
       $this->configuration['conditions']['conditions'] = $values['conditions']['conditions'];
 
+      //this is in ShippingMethodBase but it's not run because we are not using 'services'
+      $this->configuration['default_package_type'] = $values['default_package_type'];
+
     }
     parent::submitConfigurationForm($form, $form_state);
   }
@@ -188,26 +190,14 @@ class CommerceUsps extends ShippingMethodBase {
   public function calculateRates(ShipmentInterface $shipment) {
     $rate = [];
 
-    $rate_request = new USPSRateRequest($this->configuration, $shipment);
 
-    if (!$shipment->getShippingProfile()->address->isEmpty()) {
+    if (!$shipment->getShippingProfile()->get('address')->isEmpty()) {
+      $rate_request = new USPSRateRequest($this->configuration, $shipment);
       $rate = $rate_request->getRates();
     }
 
     return $rate;
 
   }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function selectRate(ShipmentInterface $shipment, ShippingRate $rate) {
-    // Plugins can override this method to store additional information
-    // on the shipment when the rate is selected (for example, the rate ID).
-    $shipment->setShippingService($rate->getService()->getId());
-    $shipment->setAmount($rate->getAmount());
-    $shipment->set('field_expected_delivery_date', $rate->getDeliveryDate());
-  }
-
 }
 
