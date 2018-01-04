@@ -1,32 +1,40 @@
 # Domestic and International package types provided by USPS.
-# https://www.ups.com/us/en/help-center/packaging-and-supplies/supplies-forms/boxes-and-tubes.page
-# https://www.ups.com/al/en/help-center/packaging-and-supplies/supplies-forms/boxes-and-tubes.page
-usps_priority_mail_express_box:
-  remote_id: 1
-  label: 'Priority Mail Express Box'
+usps_large_flat_rate_box:
+  remote_id: 'Lg Flat Rate Box'
+  label: 'USPS Large Flat Rate Box'
   dimensions:
-    length: 11
-    width: 8.5
-    height: 5.5
-    unit: 'in'
-  shipping_method: 'usps'
-
-usps_priority_mail_box:
-  remote_id: 2
-  label: 'Priority Mail Box'
-  dimensions:
-    length: 7
-    width: 7
+    length: 12.25
+    width: 12.25
     height: 6
     unit: 'in'
   shipping_method: 'usps'
 
-usps_priority_mail_apo_fpo_box:
-  remote_id: 3
-  label: 'Military Flat Rate'
+usps_medium_flat_rate_box_top_loading:
+  remote_id: 'Md Flat Rate Box'
+  label: 'USPS Medium Flat Rate Box Top Loading'
+  dimensions:
+    length: 11.25
+    width: 8.75
+    height: 6
+    unit: 'in'
+  shipping_method: 'usps'
+
+usps_medium_flat_rate_box:
+  remote_id: 'Md Flat Rate Box'
+  label: 'USPS Medium Flat Rate Box'
   dimensions:
     length: 12
-    width: 12
+    width: 3.25
+    height: 14
+    unit: 'in'
+  shipping_method: 'usps'
+
+usps_small_flat_rate_box:
+  remote_id: 'Sm Flat Rate Box'
+  label: 'USPS Small Flat Rate Box'
+  dimensions:
+    length: 8.69
+    width: 1.75
     height: 5.5
     unit: 'in'
   shipping_method: 'usps'
