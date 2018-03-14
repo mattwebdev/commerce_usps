@@ -6,7 +6,6 @@ use Drupal\commerce_price\Price;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\ShippingRate;
 use Drupal\commerce_shipping\ShippingService;
-use Drupal\Core\Datetime\DrupalDateTime;
 use USPS\Rate;
 use USPS\ServiceDeliveryCalculator;
 
@@ -23,8 +22,10 @@ class USPSRateRequest extends USPSRequest {
   /** @var array */
   protected $configuration;
 
-  /** @var \Drupal\commerce_usps\USPSShipment */
-  protected $usps_shipment;
+  /**
+   * @var \USPS\Rate
+   */
+  protected $usps_request;
 
   /**
    * uspsRateRequest constructor.
@@ -33,23 +34,11 @@ class USPSRateRequest extends USPSRequest {
    * @param \Drupal\commerce_shipping\Entity\ShipmentInterface $commerce_shipment
    */
   public function __construct(array $configuration, ShipmentInterface $commerce_shipment) {
-
     parent::__construct($configuration);
-
     $this->commerce_shipment = $commerce_shipment;
 
-    $this->usps_shipment = $this->getUSPSShipment($commerce_shipment);
-  }
-
-  /**
-   * @param \Drupal\commerce_shipping\Entity\ShipmentInterface $commerce_shipment
-   *
-   * @return \Drupal\commerce_usps\USPSShipment
-   */
-  public function getUSPSShipment(ShipmentInterface $commerce_shipment) {
-
-    return new USPSShipment($commerce_shipment);
-
+    // Initialize the USPS request.
+    $this->initRequest();
   }
 
   /**
@@ -58,73 +47,60 @@ class USPSRateRequest extends USPSRequest {
   public function getRates() {
     $rates = [];
 
-    $address = $this->commerce_shipment->getShippingProfile()->get('address');
-    $request = $this->buildRequestObject($this->getShipment());
-    $rate = $request->getRate();
-    $xml_parser = new XMLParser();
 
+    // Add each package the the request.
+    foreach ($this->getPackages() as $package) {
+      $this->usps_request->addPackage($package);
+    }
 
-    if (!empty($rate)) {
-      $responseArray = $xml_parser->parse($rate);
+    // Fetch the rates.
+    $this->usps_request->getRate();
+    $response = $this->usps_request->getArrayResponse();
 
-      $delivery_response = $this->checkDeliveryDate();
-      $delivery_date = New DrupalDateTime($delivery_response['SDCGetLocationsResponse']['NonExpedited'][0]['SchedDlvryDate']);
+    // Parse the rate response and create shipping rates array.
+    if (!empty($response['RateV4Response']['Package']['Postage'])) {
+      foreach ($response['RateV4Response']['Package']['Postage'] as $rate) {
+        $price = $rate['Rate'];
+        $service_code = $rate['@attributes']['CLASSID'];
+        $service_name = $this->cleanServiceName($rate['MailService']);
 
-      $cost = $responseArray['RateV4Response'][0]['Package'][0]['Postage'][0]["Rate"][0];
+        $shipping_service = new ShippingService(
+          $service_code,
+          $service_name
+        );
 
-      $currency = $this->commerce_shipment->getAmount()->getCurrencyCode();
-
-      $price = new Price((string) $cost, $currency);
-
-      $serviceCode = $this->getShipment()::SERVICE_PARCEL;
-
-      $shippingService = new ShippingService(
-        $serviceCode,
-        "USPS" . " " . $this->translateServiceLables($serviceCode)
-      );
-
-      $rates[] = new ShippingRate(
-        $serviceCode,
-        $shippingService,
-        $price,
-        $delivery_date
-      );
-
-
+        $rates[] = new ShippingRate(
+          $service_code,
+          $shipping_service,
+          new Price($price, 'USD')
+        );
+      }
     }
 
     return $rates;
   }
 
-  /**
-   * @param $shipment
-   *
-   * @return \USPS\Rate
-   */
-  public function buildRequestObject($shipment) {
-    $request = $this->getRequest();
-    $request->addPackage($shipment);
-    return $request;
-  }
-
-  /**
-   * @return \USPS\Rate
-   */
-  public function getRequest() {
-
-    return new Rate(
+  protected function initRequest() {
+    $this->usps_request = new Rate(
       $this->configuration['api_information']['user_id']
     );
-
+    $this->setMode();
   }
 
-  /**
-   * @return \USPS\RatePackage
-   */
-  public function getShipment() {
+  protected function setMode() {
+    $this->usps_request->setTestMode($this->configuration['api_information']['mode'] == 'test');
+  }
 
-    return $this->usps_shipment->getShipment();
+  protected function getPackages() {
+    // @todo: Support multiple packages.
+    $package = new USPSPackage($this->commerce_shipment);
+    return [$package->getPackage()];
+  }
 
+  protected function cleanServiceName($service) {
+    // Remove the html encoded trademark markup since it's
+    // not supported in radio labels.
+    return str_replace('&lt;sup&gt;&#8482;&lt;/sup&gt;', '', $service);
   }
 
   public function checkDeliveryDate() {
@@ -166,9 +142,7 @@ class USPSRateRequest extends USPSRequest {
    * @return mixed
    */
   public function getMode() {
-
     return $this->configuration['api_information']['mode'];
-
   }
 
 }

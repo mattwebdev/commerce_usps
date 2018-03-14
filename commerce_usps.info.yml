@@ -1,6 +1,6 @@
-name: Commerce usps
+name: Commerce USPS
 type: module
-description: usps Shipping Module for Drupal 8
+description: USPS Shipping Module for Drupal 8
 core: 8.x
 package: Commerce (shipping)
 core: 8.x

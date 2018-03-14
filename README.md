@@ -1,7 +1,7 @@
-Commerce usps
+Commerce USPS
 =================
 
-Provides usps shipping functionality for Drupal Commerce, based heavily on the work done by [Commerce Fedex](https://github.com/bmcclure/drupal-commerce_fedex).
+Provides USPS shipping rates for Drupal Commerce.
 
 ## Development Setup
 
@@ -9,6 +9,6 @@ Provides usps shipping functionality for Drupal Commerce, based heavily on the w
 
 2. Manually get dependencies to installed Drupal.
 
-`composer require gabrielbull/usps-api:~0.7`
+`composer require vinceg/usps-php-api:~1.0`
 
 3. Enable module.
