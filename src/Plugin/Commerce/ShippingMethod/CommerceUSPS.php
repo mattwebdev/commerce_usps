@@ -8,14 +8,104 @@ use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodBase;
 use Drupal\commerce_usps\USPSRateRequest;
 use Drupal\Core\Form\FormStateInterface;
 
-
 /**
  * @CommerceShippingMethod(
  *  id = "usps",
  *  label = @Translation("USPS"),
+ *  services = {
+ *    "_0" = @translation("First-Class Mail (Large Envelope, Letter, Parcel, Postcards"),
+ *    "_1" = @translation("Priority Mail ____"),
+ *    "_2" = @translation("Priority Mail Express ____ Hold For Pickup"),
+ *    "_3" = @translation("Priority Mail Express ____"),
+ *    "_4" = @translation("Standard Post"),
+ *    "_6" = @translation("Media Mail"),
+ *    "_7" = @translation("Library Mail"),
+ *    "_13"= @translation("Priority Mail Express ____ Flat Rate Envelope"),
+ *    "_15" = @translation("First-Class Mail Large Postcards"),
+ *    "_16" = @translation("Priority Mail ____ Flat Rate Envelope"),
+ *    "_17" = @translation("Priority Mail ____ Medium Flat Rate Box"),
+ *    "_22" = @translation("Priority Mail ____ Large Flat Rate Box"),
+ *    "_23" = @translation("Priority Mail Express ____ Sunday/Holiday Delivery"),
+ *    "_25" = @translation("Priority Mail Express ____ Sunday/Holiday Delivery Flat Rate Envelope"),
+ *    "_27" = @translation("Priority Mail Express ____ Flat Rate Envelope Hold For Pickup"),
+ *    "_28" = @translation("Priority Mail ____ Small Flat Rate Box"),
+ *    "_29" = @translation("Priority Mail ____ Padded Flat Rate Envelope"),
+ *    "_30" = @translation("Priority Mail Express ____ Legal Flat Rate Envelope"),
+ *    "_31" = @translation("Priority Mail Express ____ Legal Flat Rate Envelope Hold For Pickup"),
+ *    "_32" = @translation("Priority Mail Express ____ Sunday/Holiday Delivery Legal Flat Rate Envelope"),
+ *    "_33" = @translation("Priority Mail ____ Hold For Pickup"),
+ *    "_34" = @translation("Priority Mail ____ Large Flat Rate Box Hold For Pickup"),
+ *    "_35" = @translation("Priority Mail ____ Medium Flat Rate Box Hold For Pickup"),
+ *    "_36" = @translation("Priority Mail ____ Small Flat Rate Box Hold For Pickup"),
+ *    "_37" = @translation("Priority Mail ____ Flat Rate Envelope Hold For Pickup"),
+ *    "-38" = @translation("Priority Mail ____ Gift Card Flat Rate Envelope"),
+ *    "_39" = @translation("Priority Mail ____ Gift Card Flat Rate Envelope Hold For Pickup"),
+ *    "_40" = @translation("Priority Mail ____ Window Flat Rate Envelope"),
+ *    "_41" = @translation("Priority Mail ____ Window Flat Rate Envelope Hold For Pickup"),
+ *    "_42" = @translation("Priority Mail ____ Small Flat Rate Envelope"),
+ *    "_43" = @translation("Priority Mail ____ Small Flat Rate Envelope Hold For Pickup"),
+ *    "_44" = @translation("Priority Mail ____ Legal Flat Rate Envelope"),
+ *    "_45" = @translation("Priority Mail ____ Legal Flat Rate Envelope Hold For Pickup"),
+ *    "_46" = @translation("Priority Mail ____ Padded Flat Rate Envelope Hold For Pickup"),
+ *    "_47" = @translation("Priority Mail ____ Regional Rate Box A"),
+ *    "_48" = @translation("Priority Mail ____ Regional Rate Box A Hold For Pickup"),
+ *    "_49" = @translation("Priority Mail ____ Regional Rate Box B"),
+ *    "_50" = @translation("Priority Mail ____ Regional Rate Box B Hold For Pickup"),
+ *    "_53" = @translation("First-Class/ Package Service Hold For Pickup"),
+ *    "_55" = @translation("Priority Mail Express ____ Flat Rate Boxes"),
+ *    "_56" = @translation("Priority Mail Express ____ Flat Rate Boxes Hold For Pickup"),
+ *    "_57" = @translation("Priority Mail Express ____ Sunday/Holiday Delivery Flat Rate Boxes"),
+ *    "_58" = @translation("Priority Mail ____ Regional Rate Box C"),
+ *    "_59" = @translation("Priority Mail ____ Regional Rate Box C Hold For Pickup"),
+ *    "_61" = @translation("First-Class/ Package Service"),
+ *    "_62" = @translation("Priority Mail Express ____ Padded Flat Rate Envelope"),
+ *    "_63" = @translation("Priority Mail Express ____ Padded Flat Rate Envelope Hold For Pickup"),
+ *    "_64" = @translation("Priority Mail Express ____ Sunday/Holiday Delivery Padded Flat Rate Envelope"),
+ *   },
  * )
  */
 class CommerceUsps extends ShippingMethodBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $package_type_manager) {
+    // Rewrite the service keys to be integers.
+    $plugin_definition = $this->preparePluginDefinition($plugin_definition);
+
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $package_type_manager);
+  }
+
+  /**
+   * Prepares the service array keys to support integer values.
+   *
+   * This uses the ClassID to make services selectable.
+   * See https://docs.rocketship.it/php/1-0/usps-class-ids.html for a full list.
+   *
+   * See https://www.drupal.org/node/2904467 for more information.
+   * todo: Remove once core issue has been addressed.
+   *
+   * @param array $plugin_definition
+   *   The plugin definition provided to the class.
+   *
+   * @return array
+   *   The prepared plugin definition.
+   */
+  private function preparePluginDefinition(array $plugin_definition) {
+    // Cache and unset the parsed plugin definitions for services.
+    $services = $plugin_definition['services'];
+    unset($plugin_definition['services']);
+
+    // Loop over each service definition and redefine them with
+    // integer keys that match the UPS API.
+    foreach ($services as $key => $service) {
+      // Remove the "_" from the service key.
+      $key_trimmed = str_replace('_', '', $key);
+      $plugin_definition['services'][$key_trimmed] = $service;
+    }
+
+    return $plugin_definition;
+  }
 
   /**
    * {@inheritdoc}
