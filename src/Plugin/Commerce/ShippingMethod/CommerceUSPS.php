@@ -3,12 +3,13 @@
 namespace Drupal\commerce_usps\Plugin\Commerce\ShippingMethod;
 
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
-use Drupal\commerce_shipping\PackageTypeManagerInterface;
 use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodBase;
 use Drupal\commerce_usps\USPSRateRequest;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
+ * Class CommerceUsps.
+ *
  * @CommerceShippingMethod(
  *  id = "usps",
  *  label = @Translation("USPS"),
@@ -21,22 +22,22 @@ class CommerceUsps extends ShippingMethodBase {
    */
   public function defaultConfiguration() {
     return [
-        'api_information' => [
-          'user_id' => '',
-          'password' => '',
-          'mode' => 'test',
-        ],
-        'options' => [
-          'log' => [],
-          'select_services' => [
-            'enabled' => [],
-            'class_id' => [],
-          ]
-        ],
-        'conditions' => [
-          'conditions' => [],
-        ],
-      ] + parent::defaultConfiguration();
+      'api_information' => [
+        'user_id' => '',
+        'password' => '',
+        'mode' => 'test',
+      ],
+      'options' => [
+        'log' => [],
+        'select_services' => [
+          'enabled' => [],
+          'class_id' => [],
+        ]
+      ],
+      'conditions' => [
+        'conditions' => [],
+      ],
+    ] + parent::defaultConfiguration();
   }
 
   /**
@@ -235,7 +236,7 @@ class CommerceUsps extends ShippingMethodBase {
 
       $this->configuration['conditions']['conditions'] = $values['conditions']['conditions'];
 
-      //this is in ShippingMethodBase but it's not run because we are not using 'services'
+      // This is in ShippingMethodBase but it's not run because we are not using 'services'.
       $this->configuration['default_package_type'] = $values['default_package_type'];
 
     }
@@ -244,11 +245,11 @@ class CommerceUsps extends ShippingMethodBase {
 
   /**
    * Calculates rates for the given shipment.
+   *
    * {@inheritdoc}
    */
   public function calculateRates(ShipmentInterface $shipment) {
     $rate = [];
-
 
     if (!$shipment->getShippingProfile()->get('address')->isEmpty()) {
       $rate_request = new USPSRateRequest($this->configuration, $shipment);
@@ -258,5 +259,5 @@ class CommerceUsps extends ShippingMethodBase {
     return $rate;
 
   }
-}
 
+}
