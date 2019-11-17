@@ -46,7 +46,7 @@ class USPSRateRequest extends USPSRequest {
    */
   public function getRates() {
     $rates = [];
-
+    $limit_by_class_id = (isset($this->configuration['options']['select_services']['enabled']) && !empty($this->configuration['options']['select_services']['enabled']['class_id']));
 
     // Add each package the the request.
     foreach ($this->getPackages() as $package) {
@@ -62,6 +62,15 @@ class USPSRateRequest extends USPSRequest {
       foreach ($response['RateV4Response']['Package']['Postage'] as $rate) {
         $price = $rate['Rate'];
         $service_code = $rate['@attributes']['CLASSID'];
+
+        // Limit serivces by Class ID if this is configured.
+        $class_id = '_' . $service_code;
+        if ($limit_by_class_id && (!\in_array($class_id, $this->configuration['options']['select_services']['class_id'], TRUE) || empty($this->configuration['options']['select_services']['class_id'][$class_id]))) {
+          continue;
+        }
+
+        // @Todo: Add Service ID Support.
+
         $service_name = $this->cleanServiceName($rate['MailService']);
 
         $shipping_service = new ShippingService(

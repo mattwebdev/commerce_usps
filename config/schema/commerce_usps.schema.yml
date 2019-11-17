@@ -18,6 +18,27 @@ commerce_shipping.commerce_shipping_method.plugin.usps:
       type: mapping
       label: 'USPS Options'
       mapping:
+        select_services:
+          type: mapping
+          label: 'Allow selecting services'
+          mapping:
+            enabled:
+              class_id:
+                type: field.value.boolean
+                mapping:
+                  value:
+                    label: 'Enable selection by Class ID'
+              service_id:
+                type: field.value.boolean
+                mapping:
+                  value:
+                    label: 'Enable selection by Service ID'
+            class_id:
+              type: sequence
+              label: 'Services by Class ID'
+              orderby: value
+              sequence:
+                type: string
         log:
           type: mapping
           label: 'Log the following messages for debugging'
